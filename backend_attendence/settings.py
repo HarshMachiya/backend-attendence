@@ -128,9 +128,9 @@ try:
     db_configured = True
     print(f"[Database] Configured MySQL database '{MYSQL_DB_NAME}' successfully.")
 except Exception as e:
-    # If we are in production (e.g. using an external DB host), we DO NOT want to silently fallback to SQLite.
-    if MYSQL_HOST and MYSQL_HOST not in ('127.0.0.1', 'localhost'):
-        print(f"[Database Error] CRITICAL: Could not connect to production MySQL server at {MYSQL_HOST}. Error: {e}")
+    # If we are on Render, we MUST use MySQL. Never fallback to SQLite.
+    if os.environ.get('RENDER'):
+        print(f"[Database Error] CRITICAL: Could not connect to production MySQL server on Render. Check your MYSQLHOST and other DB variables! Error: {e}")
         raise e
         
     print(f"[Database Note] Could not connect to local MySQL server ({e}). Operating with SQLite database.")
