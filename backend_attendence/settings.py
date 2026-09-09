@@ -105,7 +105,7 @@ try:
         user=MYSQL_USER,
         password=MYSQL_PASSWORD,
         port=int(MYSQL_PORT),
-        connect_timeout=2
+        connect_timeout=10
     )
     with conn.cursor() as cursor:
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{MYSQL_DB_NAME}` CHARACTER SET utf8mb4;")
@@ -128,6 +128,11 @@ try:
     db_configured = True
     print(f"[Database] Configured MySQL database '{MYSQL_DB_NAME}' successfully.")
 except Exception as e:
+    # If we are in production (e.g. using an external DB host), we DO NOT want to silently fallback to SQLite.
+    if MYSQL_HOST and MYSQL_HOST not in ('127.0.0.1', 'localhost'):
+        print(f"[Database Error] CRITICAL: Could not connect to production MySQL server at {MYSQL_HOST}. Error: {e}")
+        raise e
+        
     print(f"[Database Note] Could not connect to local MySQL server ({e}). Operating with SQLite database.")
     DATABASES = {
         'default': {
